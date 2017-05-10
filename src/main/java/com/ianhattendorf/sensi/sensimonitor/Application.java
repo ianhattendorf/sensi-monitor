@@ -30,12 +30,11 @@ public class Application {
                 status = statusRepository.save(status);
                 log.info("Saved status: {}", status);
             });
-            sensiApi.start();
-            sensiApi.subscribe();
+            sensiApi.start().thenRun(sensiApi::subscribe).get();
             for (int i = 0; i < 5; ++i) {
-                sensiApi.poll();
+                sensiApi.poll().get();
             }
-            sensiApi.disconnect();
+            sensiApi.disconnect().get();
             log.info("Disconnected, all saved statuses:");
             statusRepository.findAll().forEach(s -> log.info("s: {}", s));
         };
