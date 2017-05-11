@@ -4,13 +4,14 @@ import com.ianhattendorf.sensiapi.response.data.OperationalStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.ZonedDateTime;
 
 @Entity
 public final class Status {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private ZonedDateTime timestamp;
     private Integer temperature;
