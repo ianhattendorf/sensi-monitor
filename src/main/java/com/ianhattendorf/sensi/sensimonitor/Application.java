@@ -1,6 +1,5 @@
 package com.ianhattendorf.sensi.sensimonitor;
 
-import com.ianhattendorf.sensi.sensimonitor.domain.Status;
 import com.ianhattendorf.sensi.sensimonitor.domain.StatusRepository;
 import com.ianhattendorf.sensiapi.SensiApi;
 import org.slf4j.Logger;
@@ -12,6 +11,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @SpringBootApplication
 public class Application {
 
@@ -22,22 +24,13 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner demo(StatusRepository statusRepository, SensiApi sensiApi) {
-        return (args) -> {
-            sensiApi.registerCallback(operationalStatus -> {
-                log.debug("operationalStatus: {}", operationalStatus);
-                Status status = new Status(operationalStatus);
-                status = statusRepository.save(status);
-                log.info("Saved status: {}", status);
-            });
-            sensiApi.start().thenRun(sensiApi::subscribe).get();
-            for (int i = 0; i < 5; ++i) {
-                sensiApi.poll().get();
-            }
-            sensiApi.disconnect().get();
-            log.info("Disconnected, all saved statuses:");
-            statusRepository.findAll().forEach(s -> log.info("s: {}", s));
-        };
+    public CommandLineRunner demo(StatusRepository statusRepository, SensiApi sensiApi, ExecutorService executor) {
+        return new SensiCommandLineRunner(statusRepository, sensiApi, executor);
+    }
+
+    @Bean
+    public ExecutorService executor() {
+        return Executors.newSingleThreadExecutor();
     }
 
     @Bean
