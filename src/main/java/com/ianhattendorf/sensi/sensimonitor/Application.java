@@ -10,9 +10,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.util.backoff.BackOff;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 public class Application {
@@ -24,8 +27,16 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner demo(StatusRepository statusRepository, SensiApi sensiApi, ExecutorService executor) {
-        return new SensiCommandLineRunner(statusRepository, sensiApi, executor);
+    public CommandLineRunner demo(StatusRepository statusRepository, SensiApi sensiApi, ExecutorService executor,
+                                  BackOff backOff) {
+        return new SensiCommandLineRunner(statusRepository, sensiApi, executor, backOff);
+    }
+
+    @Bean
+    public BackOff backOff() {
+        ExponentialBackOff backOff = new ExponentialBackOff(TimeUnit.SECONDS.toMillis(15), 2);
+        backOff.setMaxInterval(TimeUnit.MINUTES.toMillis(5));
+        return backOff;
     }
 
     @Bean
