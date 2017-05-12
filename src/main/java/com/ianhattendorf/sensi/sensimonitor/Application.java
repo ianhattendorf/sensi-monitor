@@ -6,13 +6,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.ExponentialBackOff;
 
+import javax.inject.Provider;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,9 +30,9 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner demo(StatusRepository statusRepository, SensiApi sensiApi, ExecutorService executor,
+    public CommandLineRunner demo(StatusRepository statusRepository, Provider<SensiApi> sensiApiProvider, ExecutorService executor,
                                   BackOff backOff) {
-        return new SensiCommandLineRunner(statusRepository, sensiApi, executor, backOff);
+        return new SensiCommandLineRunner(statusRepository, sensiApiProvider, executor, backOff);
     }
 
     @Bean
@@ -45,6 +48,7 @@ public class Application {
     }
 
     @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SensiApi sensiApi(@Value("${sensi.username}") String username, @Value("${sensi.password}") String password) {
         return new SensiApi.Builder()
                 .setUsername(username)

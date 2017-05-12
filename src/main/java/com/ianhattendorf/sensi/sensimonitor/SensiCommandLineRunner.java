@@ -12,7 +12,7 @@ import org.springframework.util.backoff.BackOffExecution;
 import retrofit2.HttpException;
 
 import javax.annotation.PreDestroy;
-import java.util.concurrent.CompletableFuture;
+import javax.inject.Provider;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,28 +21,28 @@ public final class SensiCommandLineRunner implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(SensiCommandLineRunner.class);
 
     private final StatusRepository statusRepository;
-    private final SensiApi sensiApi;
+    private final Provider<SensiApi> sensiApiProvider;
     private final ExecutorService executor;
     private final BackOff backOff;
 
-    SensiCommandLineRunner(StatusRepository statusRepository, SensiApi sensiApi, ExecutorService executor, BackOff backOff) {
+    SensiCommandLineRunner(StatusRepository statusRepository, Provider<SensiApi> sensiApiProvider, ExecutorService executor, BackOff backOff) {
         this.statusRepository = statusRepository;
-        this.sensiApi = sensiApi;
+        this.sensiApiProvider = sensiApiProvider;
         this.executor = executor;
         this.backOff = backOff;
     }
 
     @Override
     public void run(String... strings) throws Exception {
-        sensiApi.registerCallback(this::statusCallback);
         executor.submit(() -> {
+            SensiApi sensiApi;
             try {
-                init().get();
+                sensiApi = getSensiApi();
             } catch (InterruptedException e) {
-                log.trace("interrupted:", e);
+                log.info("interrupted, exiting");
                 return;
             } catch (ExecutionException e) {
-                log.error("init exception:", e);
+                log.error("getSensiApi exception:", e);
                 // exit exceptionally
                 throw new RuntimeException(e);
             }
@@ -57,20 +57,28 @@ public final class SensiCommandLineRunner implements CommandLineRunner {
                     }
                     sensiApi.poll().get();
                 } catch (InterruptedException e) {
-                    log.trace("interrupted, exiting", e);
-                    return;
+                    log.info("interrupted, exiting");
+                    nextBackOff = BackOffExecution.STOP;
                 } catch (ExecutionException e) {
-                    if (e.getCause() instanceof HttpException
-                            && ((HttpException) (e.getCause())).code() == 403) {
-                        // need to re-auth
-                        try {
-                            init().get();
-                        } catch (InterruptedException e1) {
-                            log.trace("reauth interrupted, exiting", e1);
-                            return;
-                        } catch (ExecutionException e1) {
+                    if (e.getCause() instanceof HttpException) {
+                        HttpException cause = (HttpException) e.getCause();
+                        // handle here for now, can't use Retrofit Authenticator because service sometimes returns
+                        // 403 instead of 401
+                        if (cause.code() == 401 || cause.code() == 403) {
+                            try {
+                                log.info("received {} code, need to reauth", cause.code());
+                                sensiApi = getSensiApi();
+                            } catch (InterruptedException e1) {
+                                log.info("reauth interrupted, exiting");
+                                nextBackOff = BackOffExecution.STOP;
+                            } catch (ExecutionException e1) {
+                                nextBackOff = backOffExecution.nextBackOff();
+                                log.error("reauth error, backing off for {}ms", nextBackOff, e1);
+                            }
+                        } else {
                             nextBackOff = backOffExecution.nextBackOff();
-                            log.error("reauth error, backing off for {}ms", nextBackOff, e1);
+                            log.error("unhandled HttpException code {}, backing off for {}ms",
+                                    cause.code(), nextBackOff, cause);
                         }
                     } else {
                         nextBackOff = backOffExecution.nextBackOff();
@@ -78,13 +86,25 @@ public final class SensiCommandLineRunner implements CommandLineRunner {
                     }
                 }
             }
+            log.info("disconnecting...");
+            try {
+                sensiApi.disconnect().get();
+            } catch (InterruptedException e) {
+                log.info("disconnect interrupted, exiting");
+            } catch (ExecutionException e) {
+                log.error("error disconnecting", e);
+            }
         });
         log.info("Running, press Ctrl+C to shutdown application");
         Thread.currentThread().join();
     }
 
-    private CompletableFuture<Void> init() {
-        return sensiApi.start().thenRun(sensiApi::subscribe);
+    private SensiApi getSensiApi() throws ExecutionException, InterruptedException {
+        SensiApi sensiApi = sensiApiProvider.get();
+        sensiApi.start()
+                .thenRun(() -> sensiApi.registerCallback(this::statusCallback))
+                .thenRun(sensiApi::subscribe).get();
+        return sensiApi;
     }
 
     private void statusCallback(OperationalStatus operationalStatus) {
@@ -98,8 +118,6 @@ public final class SensiCommandLineRunner implements CommandLineRunner {
         log.info("shutting down ExecutorService...");
         executor.shutdownNow();
         executor.awaitTermination(45, TimeUnit.SECONDS);
-        log.info("disconnecting...");
-        sensiApi.disconnect().get();
         log.info("disconnected, all saved statuses:");
         // TODO remove once persisted outside h2
         statusRepository.findAll().forEach(s -> log.info("s: {}", s));
