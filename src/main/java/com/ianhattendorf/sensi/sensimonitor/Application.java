@@ -11,12 +11,16 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.ExponentialBackOff;
 
 import javax.inject.Provider;
+import javax.sql.DataSource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +57,19 @@ public class Application {
         return Executors.newSingleThreadExecutor();
     }
 
+    @Bean
+    @Profile("pg")
+    @ConfigurationProperties(prefix="datasource.postgres")
+    public DataSource primaryDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean
+    @Profile("h2")
+    @ConfigurationProperties(prefix="datasource.h2")
+    public DataSource secondaryDataSource() {
+        return DataSourceBuilder.create().build();
+    }
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SensiApi sensiApi(@Value("${sensi.username}") String username, @Value("${sensi.password}") String password) {
