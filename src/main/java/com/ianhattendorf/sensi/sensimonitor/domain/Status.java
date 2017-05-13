@@ -28,13 +28,26 @@ public final class Status {
 
     public Status(OperationalStatus operationalStatus) {
         updatedAt = ZonedDateTime.now();
-        temperature = operationalStatus.getTemperature() == null ? null : operationalStatus.getTemperature().getF().shortValue();
-        humidity = operationalStatus.getHumidity().shortValue();
-        batteryVoltage = operationalStatus.getBatteryVoltage().shortValue();
-        running = operationalStatus.getRunning() == null ? null : operationalStatus.getRunning().getMode();
+        if (operationalStatus.getTemperature() == null
+                ||  operationalStatus.getTemperature().getF() == null) {
+            temperature = null;
+        } else {
+            temperature = operationalStatus.getTemperature().getF().shortValue();
+        }
+        humidity = operationalStatus.getHumidity() == null
+                ? null
+                : operationalStatus.getHumidity().shortValue();
+        batteryVoltage = operationalStatus.getBatteryVoltage() == null
+                ? null
+                : operationalStatus.getBatteryVoltage().shortValue();
+        running = operationalStatus.getRunning() == null
+                ? null
+                : operationalStatus.getRunning().getMode();
         lowPower = operationalStatus.getLowPower();
         operatingMode = operationalStatus.getOperatingMode();
-        powerStatus = operationalStatus.getPowerStatus().shortValue();
+        powerStatus = operationalStatus.getPowerStatus() == null
+                ? null
+                : operationalStatus.getPowerStatus().shortValue();
     }
 
     public Integer getId() {

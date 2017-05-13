@@ -31,6 +31,7 @@ public final class SensiMonitor {
         try {
             sensiApi = getSensiApi();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.info("interrupted, exiting");
             return;
         } catch (ExecutionException e) {
@@ -49,6 +50,7 @@ public final class SensiMonitor {
                 }
                 sensiApi.poll().get();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 log.info("interrupted, exiting");
                 nextBackOff = BackOffExecution.STOP;
             } catch (ExecutionException e) {
@@ -61,6 +63,7 @@ public final class SensiMonitor {
                             log.info("received {} code, need to reauth", cause.code());
                             sensiApi = getSensiApi();
                         } catch (InterruptedException e1) {
+                            Thread.currentThread().interrupt();
                             log.info("reauth interrupted, exiting");
                             nextBackOff = BackOffExecution.STOP;
                         } catch (ExecutionException e1) {
@@ -82,6 +85,7 @@ public final class SensiMonitor {
         try {
             sensiApi.disconnect().get();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.info("disconnect interrupted, exiting");
         } catch (ExecutionException e) {
             log.error("error disconnecting", e);
