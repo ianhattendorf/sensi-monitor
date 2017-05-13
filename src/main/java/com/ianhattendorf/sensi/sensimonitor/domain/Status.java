@@ -10,6 +10,8 @@ public final class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @ManyToOne(optional = false)
+    private Thermostat thermostat;
     @Column(nullable = false)
     private ZonedDateTime updatedAt;
     private Short temperature;
@@ -41,6 +43,14 @@ public final class Status {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Thermostat getThermostat() {
+        return thermostat;
+    }
+
+    public void setThermostat(Thermostat thermostat) {
+        this.thermostat = thermostat;
     }
 
     public ZonedDateTime getUpdatedAt() {
@@ -111,6 +121,7 @@ public final class Status {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Status{");
         sb.append("id=").append(id);
+        sb.append(", thermostat='").append(thermostat).append('\'');
         sb.append(", updatedAt=").append(updatedAt);
         sb.append(", temperature=").append(temperature);
         sb.append(", humidity=").append(humidity);

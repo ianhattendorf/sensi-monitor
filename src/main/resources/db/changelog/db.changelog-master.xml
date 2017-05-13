@@ -20,4 +20,19 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="2" author="ian">
+        <createTable tableName="thermostat">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="thermostat_pk"/>
+            </column>
+            <column name="icd" type="CHAR(23)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="thermostat_icd_ak"/>
+            </column>
+        </createTable>
+        <addColumn tableName="status">
+            <column name="thermostat_id" type="INT">
+                <constraints references="thermostat(id)" foreignKeyName="status_thermostat_id_fk"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

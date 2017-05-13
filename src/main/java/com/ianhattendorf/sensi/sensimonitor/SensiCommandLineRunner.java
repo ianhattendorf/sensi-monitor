@@ -107,9 +107,9 @@ public final class SensiCommandLineRunner implements CommandLineRunner {
         return sensiApi;
     }
 
-    private void statusCallback(OperationalStatus operationalStatus) {
-        log.debug("operationalStatus: {}", operationalStatus);
-        Status status = statusRepository.save(new Status(operationalStatus));
+    private void statusCallback(String thermostatICD, OperationalStatus operationalStatus) {
+        log.debug("operationalStatus['{}']: {}", thermostatICD, operationalStatus);
+        Status status = statusRepository.save(new Status(operationalStatus), thermostatICD);
         log.info("saved status: {}", status);
     }
 
@@ -120,6 +120,6 @@ public final class SensiCommandLineRunner implements CommandLineRunner {
         executor.awaitTermination(45, TimeUnit.SECONDS);
         log.info("disconnected, all saved statuses:");
         // TODO remove once persisted outside h2
-        statusRepository.findAll().forEach(s -> log.info("s: {}", s));
+        statusRepository.findAllJoin().forEach(s -> log.info("s: {}", s));
     }
 }

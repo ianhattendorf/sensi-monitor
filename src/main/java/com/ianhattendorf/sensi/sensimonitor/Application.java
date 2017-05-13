@@ -30,8 +30,8 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner demo(StatusRepository statusRepository, Provider<SensiApi> sensiApiProvider, ExecutorService executor,
-                                  BackOff backOff) {
+    public CommandLineRunner sensiRunner(StatusRepository statusRepository, Provider<SensiApi> sensiApiProvider,
+                                      ExecutorService executor, BackOff backOff) {
         return new SensiCommandLineRunner(statusRepository, sensiApiProvider, executor, backOff);
     }
 
