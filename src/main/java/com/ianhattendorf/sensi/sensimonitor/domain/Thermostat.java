@@ -7,15 +7,12 @@ public final class Thermostat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    // columnDefinition = "bpchar(23)" required for ddl-auto=validate with postgresql
-    // hibernate doesn't seem to detect char column correctly
-    @Column(unique = true, nullable = false, length = 23, columnDefinition = "bpchar(23)")
+    @Column(unique = true, nullable = false, length = 23)
     private String icd;
 
     protected Thermostat() {}
 
     public Thermostat(String icd) {
-        this.id = id;
         this.icd = icd;
     }
 

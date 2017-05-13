@@ -35,4 +35,7 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="3" author="ian">
+        <modifyDataType tableName="thermostat" columnName="icd" newDataType="VARCHAR(23)"/>
+    </changeSet>
 </databaseChangeLog>
