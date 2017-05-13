@@ -1,7 +1,8 @@
 package com.ianhattendorf.sensi.sensimonitor;
 
+import com.ianhattendorf.sensi.sensiapi.RetrofitSensiApi;
 import com.ianhattendorf.sensi.sensimonitor.domain.StatusRepository;
-import com.ianhattendorf.sensiapi.SensiApi;
+import com.ianhattendorf.sensi.sensiapi.SensiApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class Application {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SensiApi sensiApi(@Value("${sensi.username}") String username, @Value("${sensi.password}") String password) {
-        return new SensiApi.Builder()
+        return new RetrofitSensiApi.Builder()
                 .setUsername(username)
                 .setPassword(password)
                 .build();

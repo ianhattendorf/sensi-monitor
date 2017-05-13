@@ -1,6 +1,6 @@
 package com.ianhattendorf.sensi.sensimonitor.domain;
 
-import com.ianhattendorf.sensiapi.response.data.OperationalStatus;
+import com.ianhattendorf.sensi.sensiapi.response.data.OperationalStatus;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;

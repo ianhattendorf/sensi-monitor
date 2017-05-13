@@ -2,8 +2,8 @@ package com.ianhattendorf.sensi.sensimonitor;
 
 import com.ianhattendorf.sensi.sensimonitor.domain.Status;
 import com.ianhattendorf.sensi.sensimonitor.domain.StatusRepository;
-import com.ianhattendorf.sensiapi.SensiApi;
-import com.ianhattendorf.sensiapi.response.data.OperationalStatus;
+import com.ianhattendorf.sensi.sensiapi.SensiApi;
+import com.ianhattendorf.sensi.sensiapi.response.data.OperationalStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.backoff.BackOff;
