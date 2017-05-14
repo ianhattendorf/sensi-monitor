@@ -20,7 +20,7 @@ public final class Status {
     @Column(length = 4)
     private String running;
     private Boolean lowPower;
-    @Column(length = 4)
+    @Column(length = 8)
     private String operatingMode;
     private Short powerStatus;
 

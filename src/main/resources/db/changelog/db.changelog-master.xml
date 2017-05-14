@@ -38,4 +38,7 @@
     <changeSet id="3" author="ian">
         <modifyDataType tableName="thermostat" columnName="icd" newDataType="VARCHAR(23)"/>
     </changeSet>
+    <changeSet id="4" author="ian">
+        <modifyDataType tableName="status" columnName="operating_mode" newDataType="VARCHAR(8)"/>
+    </changeSet>
 </databaseChangeLog>
