@@ -1,7 +1,5 @@
 package com.ianhattendorf.sensi.sensimonitor.domain;
 
-import com.ianhattendorf.sensi.sensiapi.response.data.OperationalStatus;
-
 import javax.persistence.*;
 import java.time.ZonedDateTime;
 
@@ -15,6 +13,7 @@ public final class Status {
     @Column(nullable = false)
     private ZonedDateTime updatedAt;
     private Short temperature;
+    private Short setPoint;
     private Short humidity;
     private Short batteryVoltage;
     @Column(length = 4)
@@ -23,32 +22,11 @@ public final class Status {
     @Column(length = 8)
     private String operatingMode;
     private Short powerStatus;
+    private Boolean scheduleMode;
+    @ManyToOne
+    private HoldMode holdMode;
 
-    protected Status() {}
-
-    public Status(OperationalStatus operationalStatus) {
-        updatedAt = ZonedDateTime.now();
-        if (operationalStatus.getTemperature() == null
-                ||  operationalStatus.getTemperature().getF() == null) {
-            temperature = null;
-        } else {
-            temperature = operationalStatus.getTemperature().getF().shortValue();
-        }
-        humidity = operationalStatus.getHumidity() == null
-                ? null
-                : operationalStatus.getHumidity().shortValue();
-        batteryVoltage = operationalStatus.getBatteryVoltage() == null
-                ? null
-                : operationalStatus.getBatteryVoltage().shortValue();
-        running = operationalStatus.getRunning() == null
-                ? null
-                : operationalStatus.getRunning().getMode();
-        lowPower = operationalStatus.getLowPower();
-        operatingMode = operationalStatus.getOperatingMode();
-        powerStatus = operationalStatus.getPowerStatus() == null
-                ? null
-                : operationalStatus.getPowerStatus().shortValue();
-    }
+    public Status() {}
 
     public Integer getId() {
         return id;
@@ -80,6 +58,14 @@ public final class Status {
 
     public void setTemperature(Short temperature) {
         this.temperature = temperature;
+    }
+
+    public Short getSetPoint() {
+        return setPoint;
+    }
+
+    public void setSetPoint(Short setPoint) {
+        this.setPoint = setPoint;
     }
 
     public Short getHumidity() {
@@ -130,19 +116,38 @@ public final class Status {
         this.powerStatus = powerStatus;
     }
 
+    public Boolean getScheduleMode() {
+        return scheduleMode;
+    }
+
+    public void setScheduleMode(Boolean scheduleMode) {
+        this.scheduleMode = scheduleMode;
+    }
+
+    public HoldMode getHoldMode() {
+        return holdMode;
+    }
+
+    public void setHoldMode(HoldMode holdMode) {
+        this.holdMode = holdMode;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Status{");
         sb.append("id=").append(id);
-        sb.append(", thermostat='").append(thermostat).append('\'');
+        sb.append(", thermostat=").append(thermostat);
         sb.append(", updatedAt=").append(updatedAt);
         sb.append(", temperature=").append(temperature);
+        sb.append(", setPoint=").append(setPoint);
         sb.append(", humidity=").append(humidity);
         sb.append(", batteryVoltage=").append(batteryVoltage);
         sb.append(", running='").append(running).append('\'');
         sb.append(", lowPower=").append(lowPower);
         sb.append(", operatingMode='").append(operatingMode).append('\'');
         sb.append(", powerStatus=").append(powerStatus);
+        sb.append(", scheduleMode=").append(scheduleMode);
+        sb.append(", holdMode=").append(holdMode);
         sb.append('}');
         return sb.toString();
     }

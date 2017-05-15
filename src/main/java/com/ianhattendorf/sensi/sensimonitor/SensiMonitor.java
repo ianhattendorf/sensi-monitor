@@ -1,9 +1,10 @@
 package com.ianhattendorf.sensi.sensimonitor;
 
+import com.ianhattendorf.sensi.sensiapi.response.data.Update;
 import com.ianhattendorf.sensi.sensimonitor.domain.Status;
 import com.ianhattendorf.sensi.sensimonitor.domain.StatusRepository;
 import com.ianhattendorf.sensi.sensiapi.SensiApi;
-import com.ianhattendorf.sensi.sensiapi.response.data.OperationalStatus;
+import com.ianhattendorf.sensi.sensimonitor.util.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.backoff.BackOff;
@@ -97,14 +98,14 @@ public final class SensiMonitor {
     private SensiApi getSensiApi() throws ExecutionException, InterruptedException {
         SensiApi sensiApi = sensiApiProvider.get();
         sensiApi.start()
-                .thenRun(() -> sensiApi.registerCallback(this::statusCallback))
+                .thenRun(() -> sensiApi.registerCallback(this::updateCallback))
                 .thenRun(sensiApi::subscribe).get();
         return sensiApi;
     }
 
-    private void statusCallback(String thermostatICD, OperationalStatus operationalStatus) {
+    private void updateCallback(String thermostatICD, Update operationalStatus) {
         log.debug("operationalStatus['{}']: {}", thermostatICD, operationalStatus);
-        Status status = statusRepository.save(new Status(operationalStatus), thermostatICD);
+        Status status = statusRepository.save(Mapper.updateToStatus(operationalStatus), thermostatICD);
         log.info("saved status: {}", status);
     }
 }

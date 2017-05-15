@@ -9,11 +9,15 @@ public class StatusRepositoryImpl implements StatusRepositoryCustom {
 
     private final Provider<StatusRepository> statusRepository;
     private final ThermostatRepository thermostatRepository;
+    private final HoldModeRepository holdModeRepository;
 
     @Autowired
-    public StatusRepositoryImpl(Provider<StatusRepository> statusRepository, ThermostatRepository thermostatRepository) {
+    public StatusRepositoryImpl(Provider<StatusRepository> statusRepository,
+                                ThermostatRepository thermostatRepository,
+                                HoldModeRepository holdModeRepository) {
         this.statusRepository = statusRepository;
         this.thermostatRepository = thermostatRepository;
+        this.holdModeRepository = holdModeRepository;
     }
 
     @Override
@@ -24,6 +28,15 @@ public class StatusRepositoryImpl implements StatusRepositoryCustom {
             thermostat = thermostatRepository.save(new Thermostat(icd));
         }
         entity.setThermostat(thermostat);
+
+        if (entity.getHoldMode() != null && entity.getHoldMode().getId() == null) {
+            HoldMode holdMode = holdModeRepository.findFirstByMode(entity.getHoldMode().getMode());
+            if (holdMode == null) {
+                holdMode = holdModeRepository.save(entity.getHoldMode());
+            }
+            entity.setHoldMode(holdMode);
+        }
+
         return statusRepository.get().save(entity);
     }
 }

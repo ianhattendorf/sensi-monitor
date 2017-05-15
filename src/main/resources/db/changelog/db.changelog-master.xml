@@ -41,4 +41,21 @@
     <changeSet id="4" author="ian">
         <modifyDataType tableName="status" columnName="operating_mode" newDataType="VARCHAR(8)"/>
     </changeSet>
+    <changeSet id="5" author="ian">
+        <createTable tableName="hold_mode">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="hold_mode_pk"/>
+            </column>
+            <column name="mode" type="VARCHAR(9)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="hold_mode_mode_ak"/>
+            </column>
+        </createTable>
+        <addColumn tableName="status">
+            <column name="set_point" type="SMALLINT"/>
+            <column name="schedule_mode" type="BOOLEAN"/>
+            <column name="hold_mode_id" type="INT">
+                <constraints references="hold_mode(id)" foreignKeyName="status_hold_mode_id_fk"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
