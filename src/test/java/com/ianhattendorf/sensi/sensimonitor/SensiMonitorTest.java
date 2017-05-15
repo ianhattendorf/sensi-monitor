@@ -1,8 +1,10 @@
 package com.ianhattendorf.sensi.sensimonitor;
 
 import com.ianhattendorf.sensi.sensiapi.SensiApi;
+import com.ianhattendorf.sensi.sensiapi.response.data.EnvironmentControls;
 import com.ianhattendorf.sensi.sensiapi.response.data.OperationalStatus;
 import com.ianhattendorf.sensi.sensiapi.response.data.Temperature;
+import com.ianhattendorf.sensi.sensiapi.response.data.Update;
 import com.ianhattendorf.sensi.sensimonitor.domain.Status;
 import com.ianhattendorf.sensi.sensimonitor.domain.StatusRepository;
 import org.junit.Before;
@@ -22,19 +24,21 @@ public final class SensiMonitorTest {
 
     private SensiApi sensiApi;
     private StatusRepository statusRepository;
-    private BackOff backOff;
     private SensiMonitor sensiMonitor;
-    private OperationalStatus operationalStatus;
+    private Update update;
 
     @Before
     public void setUp() {
         sensiApi = mock(SensiApi.class);
         statusRepository = mock(StatusRepository.class);
-        backOff = new FixedBackOff(0, 0);
+        BackOff backOff = new FixedBackOff(0, 0);
         sensiMonitor = new SensiMonitor(statusRepository, () -> sensiApi, backOff);
-        operationalStatus = new OperationalStatus();
-        operationalStatus.setTemperature(new Temperature(123, 50));
-        operationalStatus.setBatteryVoltage(3210);
+        update = new Update();
+        update.setOperationalStatus(new OperationalStatus());
+        update.getOperationalStatus().setTemperature(new Temperature(123, 50));
+        update.getOperationalStatus().setBatteryVoltage(3210);
+        update.setEnvironmentControls(new EnvironmentControls());
+        update.getEnvironmentControls().setHoldMode("Off");
     }
 
     @Test
@@ -44,11 +48,11 @@ public final class SensiMonitorTest {
 
         // register callback and save for later to call when poll is called
         @SuppressWarnings("unchecked")
-        BiConsumer<String, OperationalStatus>[] callbacks = (BiConsumer<String, OperationalStatus>[]) new BiConsumer[1];
+        BiConsumer<String, Update>[] callbacks = (BiConsumer<String, Update>[]) new BiConsumer[1];
         doAnswer(invocation -> {
             @SuppressWarnings("unchecked")
-            BiConsumer<String, OperationalStatus> callback =
-                    (BiConsumer<String, OperationalStatus>) invocation.getArgumentAt(0, BiConsumer.class);
+            BiConsumer<String, Update> callback =
+                    (BiConsumer<String, Update>) invocation.getArgumentAt(0, BiConsumer.class);
             callbacks[0] = callback;
             return null;
         }).when(sensiApi).registerCallback(any());
@@ -58,10 +62,10 @@ public final class SensiMonitorTest {
         CompletableFuture<Void> future = (CompletableFuture<Void>) mock(CompletableFuture.class);
         when(future.get()).thenThrow(new InterruptedException());
         when(sensiApi.poll()).thenAnswer(invocation -> {
-            callbacks[0].accept("icd", operationalStatus);
+            callbacks[0].accept("icd", update);
             return CompletableFuture.completedFuture(null);
         }).thenAnswer(invocation -> {
-            callbacks[0].accept("icd", new OperationalStatus());
+            callbacks[0].accept("icd", new Update());
             return CompletableFuture.completedFuture(null);
         }).thenReturn(future);
 
