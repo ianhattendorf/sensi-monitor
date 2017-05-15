@@ -58,4 +58,7 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="6" author="ian">
+        <addNotNullConstraint tableName="status" columnName="thermostat_id"/>
+    </changeSet>
 </databaseChangeLog>
