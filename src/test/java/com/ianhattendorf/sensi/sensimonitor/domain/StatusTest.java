@@ -32,15 +32,19 @@ public final class StatusTest {
 
         update.getOperationalStatus().setOperatingMode("Cool");
         status = Mapper.updateToStatus(update);
-        assertEquals(79, status.getSetPoint().shortValue());
+        assertEquals(75, status.getSetPoint().shortValue());
 
         update.getOperationalStatus().setOperatingMode("Heat");
         status = Mapper.updateToStatus(update);
-        assertEquals(62, status.getSetPoint().shortValue());
+        assertEquals(70, status.getSetPoint().shortValue());
 
         update.getOperationalStatus().setOperatingMode("AutoCool");
         status = Mapper.updateToStatus(update);
-        assertNull(status.getSetPoint());
+        assertEquals(75, status.getSetPoint().shortValue());
+
+        update.getOperationalStatus().setOperatingMode("AutoHeat");
+        status = Mapper.updateToStatus(update);
+        assertEquals(70, status.getSetPoint().shortValue());
 
         update.getOperationalStatus().setOperatingMode("asdf");
         status = Mapper.updateToStatus(update);
@@ -52,6 +56,14 @@ public final class StatusTest {
         assertEquals(75, status.getSetPoint().shortValue());
 
         update.getOperationalStatus().setOperatingMode("Heat");
+        status = Mapper.updateToStatus(update);
+        assertEquals(70, status.getSetPoint().shortValue());
+
+        update.getOperationalStatus().setOperatingMode("AutoCool");
+        status = Mapper.updateToStatus(update);
+        assertEquals(75, status.getSetPoint().shortValue());
+
+        update.getOperationalStatus().setOperatingMode("AutoHeat");
         status = Mapper.updateToStatus(update);
         assertEquals(70, status.getSetPoint().shortValue());
 

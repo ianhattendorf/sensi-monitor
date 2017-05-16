@@ -20,52 +20,22 @@ public final class Mapper {
         EnvironmentControls environmentControls = update.getEnvironmentControls();
 
         // determine current set point temperature
-        // first check if schedule mode is off/on
-        // if off, set setpoint to current setpoint based on operatingMode
-        // if on, set setpoint to schedule based on operatingMode
         if (environmentControls != null && operationalStatus != null
                 && operationalStatus.getOperatingMode() != null
                 && environmentControls.getScheduleMode() != null) {
             Temperature temperature = null;
-            switch (environmentControls.getScheduleMode()) {
-                case "Off":
-                    switch (operationalStatus.getOperatingMode()) {
-                        case "Cool":
-                            temperature = environmentControls.getCoolSetpoint();
-                            break;
-                        case "Heat":
-                            temperature = environmentControls.getHeatSetpoint();
-                            break;
-                        default:
-                            log.warn("Unknown operationalStatus.operatingMode while schedule is off: {}",
-                                    operationalStatus.getOperatingMode());
-                    }
+            switch (operationalStatus.getOperatingMode()) {
+                case "Cool":
+                case "AutoCool":
+                    temperature = environmentControls.getCoolSetpoint();
                     break;
-                case "On":
-                    if (operationalStatus.getScheduleTemps() == null) {
-                        log.warn("schedule on but operationalStatus.scheduleTemps is null");
-                        break;
-                    }
-                    switch (operationalStatus.getOperatingMode()) {
-                        case "Cool":
-                            temperature = operationalStatus.getScheduleTemps().getCool();
-                            break;
-                        case "Heat":
-                            temperature = operationalStatus.getScheduleTemps().getHeat();
-                            break;
-                        case "AutoCool":
-                            temperature = operationalStatus.getScheduleTemps().getAutoCool();
-                            break;
-                        case "AutoHeat":
-                            temperature = operationalStatus.getScheduleTemps().getAutoHeat();
-                            break;
-                        default:
-                            log.warn("Unknown operationalStatus.operatingMode while schedule is on: {}",
-                                    operationalStatus.getOperatingMode());
-                    }
+                case "Heat":
+                case "AutoHeat":
+                    temperature = environmentControls.getHeatSetpoint();
                     break;
                 default:
-                    log.warn("Unknown environmentControls.scheduleMode: {}", environmentControls.getScheduleMode());
+                    log.warn("Unknown operationalStatus.operatingMode while schedule is off: {}",
+                            operationalStatus.getOperatingMode());
             }
             if (temperature != null && temperature.getF() != null) {
                 status.setSetPoint(temperature.getF().shortValue());
