@@ -103,9 +103,10 @@ public final class SensiMonitor {
         return sensiApi;
     }
 
-    private void updateCallback(String thermostatICD, Update operationalStatus) {
+    private void updateCallback(com.ianhattendorf.sensi.sensiapi.response.data.Thermostat thermostatICD,
+                                Update operationalStatus) {
         log.debug("operationalStatus['{}']: {}", thermostatICD, operationalStatus);
-        Status status = statusRepository.save(Mapper.updateToStatus(operationalStatus), thermostatICD);
+        Status status = statusRepository.save(Mapper.updateToStatus(operationalStatus), thermostatICD.getiCD());
         log.info("saved status: {}", status);
     }
 }
