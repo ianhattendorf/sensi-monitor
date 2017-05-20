@@ -1,10 +1,7 @@
 package com.ianhattendorf.sensi.sensimonitor;
 
 import com.ianhattendorf.sensi.sensiapi.SensiApi;
-import com.ianhattendorf.sensi.sensiapi.response.data.EnvironmentControls;
-import com.ianhattendorf.sensi.sensiapi.response.data.OperationalStatus;
-import com.ianhattendorf.sensi.sensiapi.response.data.Temperature;
-import com.ianhattendorf.sensi.sensiapi.response.data.Update;
+import com.ianhattendorf.sensi.sensiapi.response.data.*;
 import com.ianhattendorf.sensi.sensimonitor.domain.Status;
 import com.ianhattendorf.sensi.sensimonitor.domain.StatusRepository;
 import org.junit.Before;
@@ -48,11 +45,11 @@ public final class SensiMonitorTest {
 
         // register callback and save for later to call when poll is called
         @SuppressWarnings("unchecked")
-        BiConsumer<String, Update>[] callbacks = (BiConsumer<String, Update>[]) new BiConsumer[1];
+        BiConsumer<Thermostat, Update>[] callbacks = (BiConsumer<Thermostat, Update>[]) new BiConsumer[1];
         doAnswer(invocation -> {
             @SuppressWarnings("unchecked")
-            BiConsumer<String, Update> callback =
-                    (BiConsumer<String, Update>) invocation.getArgumentAt(0, BiConsumer.class);
+            BiConsumer<Thermostat, Update> callback =
+                    (BiConsumer<Thermostat, Update>) invocation.getArgumentAt(0, BiConsumer.class);
             callbacks[0] = callback;
             return null;
         }).when(sensiApi).registerCallback(any());
@@ -62,10 +59,10 @@ public final class SensiMonitorTest {
         CompletableFuture<Void> future = (CompletableFuture<Void>) mock(CompletableFuture.class);
         when(future.get()).thenThrow(new InterruptedException());
         when(sensiApi.poll()).thenAnswer(invocation -> {
-            callbacks[0].accept("icd", update);
+            callbacks[0].accept(getThermostat(), update);
             return CompletableFuture.completedFuture(null);
         }).thenAnswer(invocation -> {
-            callbacks[0].accept("icd", new Update());
+            callbacks[0].accept(getThermostat(), new Update());
             return CompletableFuture.completedFuture(null);
         }).thenReturn(future);
 
@@ -87,5 +84,9 @@ public final class SensiMonitorTest {
         verify(sensiApi).disconnect();
         verify(statusRepository, times(2)).save(notNull(Status.class), eq("icd"));
         verify(statusRepository).findAllJoin();
+    }
+
+    private static Thermostat getThermostat() {
+        return new Thermostat(null, null, null, null, null, "icd", null, null, null);
     }
 }
