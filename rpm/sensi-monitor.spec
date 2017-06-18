@@ -2,14 +2,14 @@
 
 %define __jar_repack 0
 Name:		sensi-monitor
-Version:	rpm
+Version:	1.0
 Release:	1%{?dist}
 Summary:	Program to monitor Sensi thermostats for changes.
 
 Group:		Application
 License:	MIT
 URL:		https://github.com/ianhattendorf/sensi-monitor
-Source0:	https://github.com/ianhattendorf/sensi-monitor/archive/%{name}-%{version}.tar.gz
+Source0:	https://github.com/ianhattendorf/sensi-monitor/archive/v%{version}.tar.gz
 
 BuildArch:	noarch
 # should require maven-local?
