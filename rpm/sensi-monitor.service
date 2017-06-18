@@ -1,0 +1,13 @@
+[Unit]
+Description=sensi-monitor
+After=syslog.target
+
+[Service]
+User=sensi-monitor
+WorkingDirectory=/opt/sensi-monitor
+# https://bugzilla.redhat.com/show_bug.cgi?id=1358476
+ExecStart=/bin/bash -c '/usr/bin/java -jar /opt/sensi-monitor/bin/sensi-monitor.jar'
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

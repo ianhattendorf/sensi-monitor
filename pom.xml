@@ -12,6 +12,7 @@
     <groupId>com.ianhattendorf.sensi</groupId>
     <artifactId>sensi-monitor</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -65,4 +66,76 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>rpm</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <version>2.1.5</version>
+                        <executions>
+                            <execution>
+                                <id>generate-rpm</id>
+                                <goals>
+                                    <goal>rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <license>MIT</license>
+                            <group>Application</group>
+                            <!--<keyname>97923df85c294a7ae4058b253a7ea46f568616dc</keyname>-->
+                            <mappings>
+                                <mapping>
+                                    <directory>/opt/sensi-monitor/lib</directory>
+                                    <dependency/>
+                                    <artifact/>
+                                </mapping>
+                                <mapping>
+                                    <directory>%{_unitdir}</directory>
+                                    <sources>
+                                        <source>
+                                            <location>rpm/sensi-monitor.service</location>
+                                            <destination>sensi-monitor.service</destination>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                                <mapping>
+                                    <directory>/opt/sensi-monitor/config</directory>
+                                    <configuration>true</configuration>
+                                    <sources>
+                                        <source>
+                                            <location>${project.build.outputDirectory}/application-secrets.properties.example</location>
+                                            <destination>application-secrets.properties</destination>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                            </mappings>
+                            <requires>
+                                <require>/usr/sbin/useradd</require>
+                                <require>/usr/bin/getent</require>
+                                <require>systemd</require>
+                            </requires>
+                            <preinstallScriptlet>
+                                <scriptFile>src/main/resources/rpm/preinstall.sh</scriptFile>
+                                <fileEncoding>utf-8</fileEncoding>
+                            </preinstallScriptlet>
+                            <postinstallScriptlet>
+                                <script>%systemd_post %{name}.service</script>
+                            </postinstallScriptlet>
+                            <preremoveScriptlet>
+                                <script>%systemd_preun %{name}.service</script>
+                            </preremoveScriptlet>
+                            <postremoveScriptlet>
+                                <script>%systemd_postun_with_restart %{name}.service</script>
+                            </postremoveScriptlet>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
