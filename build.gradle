@@ -101,6 +101,12 @@ ospackage {
     }
 }
 
+tasks.withType(Tar) {
+    // LZMA would be nice
+    compression = Compression.BZIP2
+    extension = 'tar.bz2'
+}
+
 task buildOSPackages {
     dependsOn buildRpm
     dependsOn buildDeb
