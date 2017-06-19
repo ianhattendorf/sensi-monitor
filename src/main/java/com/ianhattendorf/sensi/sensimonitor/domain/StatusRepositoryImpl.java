@@ -1,9 +1,9 @@
 package com.ianhattendorf.sensi.sensimonitor.domain;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Provider;
-import javax.transaction.Transactional;
 
 public class StatusRepositoryImpl implements StatusRepositoryCustom {
 

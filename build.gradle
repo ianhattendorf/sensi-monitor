@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'net.researchgate.release' version '2.6.0'
+    id 'com.github.ben-manes.versions' version '0.15.0'
+    id 'org.springframework.boot' version '1.5.3.RELEASE'
+}
+
+group 'com.ianhattendorf.sensi'
+
+sourceCompatibility = 1.8
+mainClassName = 'com.ianhattendorf.sensi.sensimonitor.Application'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.ianhattendorf.sensi:sensi-api:1.0',
+            'org.springframework.boot:spring-boot-starter-data-jpa',
+            'com.h2database:h2:1.4.195',
+            'org.postgresql:postgresql:42.1.1',
+            'javax.inject:javax.inject:1'
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+//gradle.projectsEvaluated {
+//    tasks.withType(JavaCompile) {
+//        options.compilerArgs << "-Xlint" << "-Xlint:-serial" << "-Werror"
+//    }
+//    tasks.withType(Javadoc) {
+//        options.addStringOption('Xdoclint:all,-missing')
+//    }
+//}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+release {
+    preTagCommitMessage = '[Release]: '
+    tagCommitMessage = '[Release]: tagging'
+    newVersionCommitMessage = '[Release]: new snapshot version'
+    tagTemplate = 'v${version}'
+}

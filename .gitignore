@@ -1,6 +1,10 @@
 # app
 application-secrets.properties
 
+### Gradle
+build/
+.gradle/
+
 # Created by .ignore support plugin (hsz.mobi)
 ### Maven template
 target/
