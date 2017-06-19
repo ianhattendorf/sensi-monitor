@@ -4,9 +4,11 @@ plugins {
     id 'net.researchgate.release' version '2.6.0'
     id 'com.github.ben-manes.versions' version '0.15.0'
     id 'org.springframework.boot' version '1.5.3.RELEASE'
+    id 'nebula.ospackage' version '4.4.0'
 }
 
 group 'com.ianhattendorf.sensi'
+version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 mainClassName = 'com.ianhattendorf.sensi.sensimonitor.Application'
@@ -55,3 +57,54 @@ release {
     newVersionCommitMessage = '[Release]: new snapshot version'
     tagTemplate = 'v${version}'
 }
+
+ospackage {
+    release '1'
+    os = LINUX
+
+    preInstall file('rpm/preinstall.sh')
+    postInstall "systemctl preset ${project.name} > /dev/null 2>&1"
+    preUninstall "systemctl disable ${project.name} > /dev/null 2>&1" + '\n' +
+            "systemctl stop ${project.name} > /dev/null 2>&1"
+    postUninstall "systemctl daemon-reload > /dev/null 2>&1"
+
+    requires('java-headless', '1.8', GREATER | EQUAL)
+
+    into '/opt/sensi-monitor'
+
+    from(jar.outputs.files) {
+        into 'bin'
+        rename { String fileName ->
+            fileName.replace("-$project.version", '')
+        }
+    }
+    from('src/main/resources/application-secrets.properties.example') {
+        fileType CONFIG | NOREPLACE
+        fileMode = 0600
+        user 'sensi-monitor'
+        permissionGroup 'sensi-monitor'
+        into 'config'
+        rename { String fileName ->
+            fileName.replace('.example', '')
+        }
+    }
+    from('src/main/resources/application.properties') {
+        fileType CONFIG | NOREPLACE
+        into 'config'
+    }
+    from('rpm/sensi-monitor.service') {
+        into '/etc/systemd/system'
+        addParentDirs false
+        user 'root'
+        permissionGroup 'root'
+        fileMode = 0644
+    }
+}
+
+task buildOSPackages {
+    dependsOn buildRpm
+    dependsOn buildDeb
+}
+
+buildRpm.dependsOn build
+buildDeb.dependsOn build
