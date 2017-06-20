@@ -5,10 +5,12 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.15.0'
     id 'org.springframework.boot' version '1.5.3.RELEASE'
     id 'nebula.ospackage' version '4.4.0'
+    id 'org.hidetake.ssh' version '2.9.0'
 }
 
 group 'com.ianhattendorf.sensi'
 version '1.0-SNAPSHOT'
+description 'Monitor Sensi thermostats for changes'
 
 sourceCompatibility = 1.8
 mainClassName = 'com.ianhattendorf.sensi.sensimonitor.Application'
@@ -51,6 +53,12 @@ artifacts {
     archives javadocJar
 }
 
+tasks.withType(Tar) {
+    // LZMA would be nice
+    compression = Compression.BZIP2
+    extension = 'tar.bz2'
+}
+
 release {
     preTagCommitMessage = '[Release]: '
     tagCommitMessage = '[Release]: tagging'
@@ -61,6 +69,8 @@ release {
 ospackage {
     release '1'
     os = LINUX
+    summary description
+    url 'https://github.com/ianhattendorf/sensi-monitor'
 
     preInstall file('rpm/preinstall.sh')
     postInstall "systemctl preset ${project.name} > /dev/null 2>&1"
@@ -101,16 +111,41 @@ ospackage {
     }
 }
 
-tasks.withType(Tar) {
-    // LZMA would be nice
-    compression = Compression.BZIP2
-    extension = 'tar.bz2'
+task elRpm(type: Rpm) {
+    distribution 'el7'
+    release "$release.$distribution"
+}
+
+task fedoraRpm(type: Rpm) {
+    distribution 'fc26'
+    release "$release.$distribution"
 }
 
 task buildOSPackages {
-    dependsOn buildRpm
+    dependsOn elRpm
+    dependsOn fedoraRpm
     dependsOn buildDeb
 }
 
-buildRpm.dependsOn build
+remotes {
+    repoServer {
+        host = 'repo'
+        user = 'repo'
+        agent = true
+    }
+}
+
+task deploy {
+    doLast {
+        ssh.run {
+            session(remotes.repoServer) {
+                def files = fileTree('build/distributions').filter { it.name =~ /\.rpm$/ }.files
+                put from: files, into: '/var/lib/repos/staging'
+            }
+        }
+    }
+}
+
+elRpm.dependsOn build
+fedoraRpm.dependsOn build
 buildDeb.dependsOn build
