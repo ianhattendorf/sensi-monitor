@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Build/Test') {
             steps {
-                sh './gradlew clean build --no-daemon'
+                sh './gradlew clean build buildOSPackages --no-daemon'
             }
             post {
                 always {
