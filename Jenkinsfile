@@ -21,5 +21,12 @@ pipeline {
                 }
             }
         }
+        stage('Deploy') {
+            steps {
+                sshagent(['jenkins-repo']) {
+                    sh './gradlew deploy --no-daemon'
+                }
+            }
+        }
     }
 }
