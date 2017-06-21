@@ -11,7 +11,6 @@ pipeline {
                 checkout scm
             }
         }
-        
         stage('Build/Test') {
             steps {
                 sh './gradlew clean build buildOSPackages --no-daemon'
