@@ -22,9 +22,13 @@ pipeline {
             }
         }
         stage('Deploy') {
+            // TODO determine release criteria
+            when {
+                branch 'master'
+            }
             steps {
                 sshagent(['jenkins-repo']) {
-                    sh './gradlew deploy --no-daemon --info --stacktrace'
+                    sh './gradlew deploy --no-daemon'
                 }
             }
         }
