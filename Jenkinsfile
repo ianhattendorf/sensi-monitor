@@ -24,7 +24,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sshagent(['jenkins-repo']) {
-                    sh './gradlew deploy --no-daemon'
+                    sh './gradlew deploy --no-daemon --debug --stacktrace'
                 }
             }
         }
